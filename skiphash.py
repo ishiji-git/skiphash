@@ -1,29 +1,24 @@
-import hashlib
-class skiphash(object):
-    """
-        This is a hash function that is applied to the remainder of
-    a file or standard input after removing the desired number
-    of bytes from the beginning.
-        For example, if there is some kind of header data attached to
-    the binary data, you may want to remove it and get the hash
-    value of the content.
+#!/usr/bin/env python
 
-    """
-    
+"""This is a hash function that is applied to the remainder of
+a file or standard input after removing the desired number
+of bytes from the beginning.
+    For example, if there is some kind of header data attached to
+the binary data, you may want to remove it and get the hash
+value of the content.
+"""
+
+
+import hashlib
+
+
+class skiphash(object):
+
     def __init__(self, func, head, num):
-        """
-          func : hash function name. default is sha1
-            it is the function name provided by hashlib. for example:
-              md5, sha1, sha224, sha256, sha384, sha512, blake2b, blake2s,
-              sha3_224, sha3_256, sha3_384, sha3_512, shake_128, and shake_256 
-                output length is 16 for shake_128 and shake_256.
-          head : data head address(bytes).
-          num  : byte num for calculating the hash. if num < 0, use all data.
-        """
         self.head = head
         self.num = num
         self.bulkread_size = 1 * 1024 * 1024
-        #self.bulkread_size = 100 * 1024 * 1024
+        # self.bulkread_size = 100 * 1024 * 1024
         self.outputlength = None
         if func is None:
             self.hashobj = hashlib.sha1()
@@ -44,17 +39,17 @@ class skiphash(object):
         if self.num < 0:
             self.num = len(data) - head
         last = head + self.num
-        #print("head:", head, "last: ", last)
+        # print("head:", head, "last:", last)
         self.hashobj.update(data[head:last])
         return self._calc()
 
     def _process_file(self, data):
         with open(data, "rb") as f:
-            filesize = f.seek(0,2)
+            filesize = f.seek(0, 2)
             if filesize < self.bulkread_size:
                 f.seek(0)
                 rawdata = f.read()
-                #print("go onmemory")
+                # print("go onmemory")
                 return self._process_byte(rawdata)
             if self.head > filesize:
                 raise Exception("head size is too large for the file size.")
@@ -65,11 +60,11 @@ class skiphash(object):
             f.seek(self.head)
             chunksize = 1024 if self.num > 1024 else self.num
             readsize = 0
-            #print("chunksize: ", chunksize)
+            # print("chunksize: ", chunksize)
             while readsize < self.num:
                 source = f.read(chunksize)
                 srclen = len(source)
-                #print("srclen: ", srclen)
+                # print("srclen: ", srclen)
                 self.hashobj.update(source)
                 readsize += srclen
                 if self.num - readsize < chunksize:
@@ -92,10 +87,12 @@ class skiphash(object):
             raise Exception("unknown type")
         return 0
 
+
 def printhex(data):
     for x in data:
         print("{:02x}".format(x), end="")
     print("\n")
+
 
 def converthex(data):
     str_ = ""
@@ -103,22 +100,26 @@ def converthex(data):
         str_ += "{:02x}".format(x)
     return str_
 
+
 if __name__ == "__main__":
     import sys
     import getopt
     import pathlib
 
-    _usage = """Usage: {} [-f hashfunc] [-h head_skipsize] [-n calc_num] file1 file2 file3 ...
-            -f hashfunc     : hash function name. default is sha1
-                                md5, sha1, sha224, sha256, sha384, sha512, blake2b, blake2s,
-                                sha3_224, sha3_256, sha3_384, sha3_512, shake_128, and shake_256.
-                              are available. the default is sha1. output length is only 16 for shake_128 and shake_256.
-            -h head_skipsize: data head address(bytes).
-            -n calc_num     : byte num for calculating the hash. if num < 0, use all data.
-        ex)
-          skiphash.py -f sha1 -h 10 -n 100 ./skiphash.py"""
+    _usage = """Usage: {} [-f hashfunc] [-h head_skipsize] [-n calc_num] file ...
+    -f hashfunc     : hash function name. default is sha1
+            md5, sha1, sha224, sha256, sha384, sha512, blake2b, blake2s,
+            sha3_224, sha3_256, sha3_384, sha3_512, shake_128, and shake_256.
+        are available. the default is sha1. output length is only 16 for
+        shake_128 and shake_256.
+    -h head_skipsize: data head address(bytes).
+    -n calc_num     : byte num for calculating the hash.
+                      if num < 0, use all data.
 
-    option = {"f":"sha1", "h":0, "n":-1}
+        ex)
+          skiphash.py -f sha1 -h 10 -n 1000 some.data.file"""
+
+    option = {"f": "sha1", "h": 0, "n": -1}
 
     if len(sys.argv) < 2:
         print(_usage.format(pathlib.os.path.basename(sys.argv[0])))
@@ -132,12 +133,13 @@ if __name__ == "__main__":
             elif o == "-h" or o == "-n":
                 option[o[1:]] = int(v)
     except Exception as e:
-            print("Error:", e)
-            print(_usage.format(pathlib.os.path.basename(sys.argv[0])))
-            sys.exit(1)
+        print("Error:", e)
+        print(_usage.format(pathlib.os.path.basename(sys.argv[0])))
+        sys.exit(1)
+
     files = argv
-    #print(option)
-    #print(files)
+    # print(option)
+    # print(files)
 
     use_file = True
     if use_file:
@@ -145,8 +147,8 @@ if __name__ == "__main__":
         for file in files:
             digest = m.digest(file)
             print(converthex(digest) + "  " + file)
-    
-    ## for test
+
+    # for test
     use_byte = False
     if use_byte:
         m = skiphash(option["f"], option["h"], option["n"])
