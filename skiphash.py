@@ -143,16 +143,16 @@ if __name__ == "__main__":
 
     use_file = True
     if use_file:
-        m = skiphash(option["f"], option["h"], option["n"])
         for file in files:
+            m = skiphash(option["f"], option["h"], option["n"])
             digest = m.digest(file)
             print(converthex(digest) + "  " + file)
 
     # for test
     use_byte = False
     if use_byte:
-        m = skiphash(option["f"], option["h"], option["n"])
         for file in files:
+            m = skiphash(option["f"], option["h"], option["n"])
             with open(file, "rb") as f:
                 rawdata = f.read()
                 digest = m.digest(rawdata)
