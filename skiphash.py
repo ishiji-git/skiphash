@@ -14,7 +14,7 @@ import hashlib
 
 class skiphash(object):
 
-    def __init__(self, func, head, num):
+    def __init__(self, func="sha1", head=0, num=-1):
         self.head = head
         self.num = num
         self.bulkread_size = 1 * 1024 * 1024
