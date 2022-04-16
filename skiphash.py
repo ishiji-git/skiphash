@@ -105,6 +105,7 @@ if __name__ == "__main__":
     import sys
     import getopt
     import pathlib
+    import glob
 
     _usage = """Usage: {} [-f hashfunc] [-h head_skipsize] [-n calc_num] file ...
     -f hashfunc     : hash function name. default is sha1
@@ -137,7 +138,11 @@ if __name__ == "__main__":
         print(_usage.format(pathlib.os.path.basename(sys.argv[0])))
         sys.exit(1)
 
-    files = argv
+    files = []
+    for f in argv:
+        files = files + glob.glob(f)
+    files = list(sorted(set(files)))
+
     # print(option)
     # print(files)
 
